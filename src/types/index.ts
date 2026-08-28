@@ -31,4 +31,15 @@ export interface Incident {
 }
 
 export interface RouteRequest { origin: string; destination: string; }
-export interface RouteResponse { distance: string; estimatedTime: string; riskLevel: RiskLevel; riskScore: number; avoidedSegments: number; }
+export type RouteCoordinates = [latitude: number, longitude: number][];
+
+export interface RouteResponse {
+  distance: string;
+  estimatedTime: string;
+  riskLevel: RiskLevel;
+  riskScore: number;
+  avoidedSegments: number;
+  geometry: RouteCoordinates;
+  origin: string;
+  destination: string;
+}

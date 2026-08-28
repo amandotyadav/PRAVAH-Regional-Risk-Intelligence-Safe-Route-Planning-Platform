@@ -55,5 +55,24 @@ export const incidents: Incident[] = [
   { id: "INC-004", type: "Flooding", severity: "HIGH", status: "RESOLVED", latitude: 26.1445, longitude: 91.7362, location: "Guwahati bypass", timestamp: "3 hrs ago", description: "Water cleared; route reopened to monitored traffic." },
 ];
 
-export const routeResult: RouteResponse = { distance: "81.4 km", estimatedTime: "1h 50m", riskLevel: "LOW", riskScore: 12, avoidedSegments: 2 };
+const siliguriToGuwahati: RouteResponse["geometry"] = [
+  [26.7271, 88.3953], [26.742, 88.68], [26.734, 89.04], [26.704, 89.43],
+  [26.63, 89.77], [26.505, 90.08], [26.37, 90.45], [26.27, 90.83],
+  [26.2, 91.18], [26.1445, 91.7362],
+];
+const gangtokToSiliguri: RouteResponse["geometry"] = [
+  [27.3389, 88.6065], [27.29, 88.59], [27.21, 88.54], [27.12, 88.49],
+  [27.02, 88.45], [26.91, 88.42], [26.7271, 88.3953],
+];
+
+const reverseGeometry = (geometry: RouteResponse["geometry"]): RouteResponse["geometry"] => [...geometry].reverse();
+
+export const mockRoutes: Record<string, RouteResponse> = {
+  "Siliguri:Guwahati": { distance: "81.4 km", estimatedTime: "1h 50m", riskLevel: "LOW", riskScore: 12, avoidedSegments: 2, geometry: siliguriToGuwahati, origin: "Siliguri", destination: "Guwahati" },
+  "Gangtok:Siliguri": { distance: "114 km", estimatedTime: "3h 20m", riskLevel: "LOW", riskScore: 15, avoidedSegments: 1, geometry: gangtokToSiliguri, origin: "Gangtok", destination: "Siliguri" },
+  "Gangtok:Guwahati": { distance: "195 km", estimatedTime: "5h 10m", riskLevel: "MEDIUM", riskScore: 22, avoidedSegments: 2, geometry: [...gangtokToSiliguri, ...siliguriToGuwahati.slice(1)], origin: "Gangtok", destination: "Guwahati" },
+  "Guwahati:Siliguri": { distance: "81.4 km", estimatedTime: "1h 50m", riskLevel: "LOW", riskScore: 12, avoidedSegments: 2, geometry: reverseGeometry(siliguriToGuwahati), origin: "Guwahati", destination: "Siliguri" },
+  "Siliguri:Gangtok": { distance: "114 km", estimatedTime: "3h 20m", riskLevel: "LOW", riskScore: 15, avoidedSegments: 1, geometry: reverseGeometry(gangtokToSiliguri), origin: "Siliguri", destination: "Gangtok" },
+  "Guwahati:Gangtok": { distance: "195 km", estimatedTime: "5h 10m", riskLevel: "MEDIUM", riskScore: 22, avoidedSegments: 2, geometry: reverseGeometry([...gangtokToSiliguri, ...siliguriToGuwahati.slice(1)]), origin: "Guwahati", destination: "Gangtok" },
+};
 export const locations = ["Gangtok", "Siliguri", "Guwahati", "Tawang", "Aizawl", "Shillong"];
