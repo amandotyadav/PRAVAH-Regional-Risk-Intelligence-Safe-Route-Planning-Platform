@@ -10,20 +10,20 @@ interface StatCardProps {
 
 const variantStyles = {
   danger: {
-    icon: "bg-red-400/10 text-red-400",
-    value: "text-red-400",
+    icon: "text-red-700",
+    value: "text-slate-900",
   },
   warning: {
-    icon: "bg-amber-400/10 text-amber-400",
-    value: "text-amber-400",
+    icon: "text-amber-700",
+    value: "text-slate-900",
   },
   success: {
-    icon: "bg-emerald-400/10 text-emerald-400",
-    value: "text-emerald-400",
+    icon: "text-emerald-700",
+    value: "text-slate-900",
   },
   info: {
-    icon: "bg-cyan-400/10 text-cyan-400",
-    value: "text-cyan-400",
+    icon: "text-blue-700",
+    value: "text-slate-900",
   },
 };
 
@@ -37,20 +37,18 @@ function StatCard({
   const styles = variantStyles[variant];
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-700">
-      <div className="flex items-center gap-3">
-        <div
-          className={`flex h-9 w-9 items-center justify-center rounded-lg ${styles.icon}`}
-        >
+    <div className="border-l-2 border-slate-200 bg-white px-4 py-3 transition hover:border-slate-400">
+      <div className="flex items-center gap-2">
+        <div className={`flex h-7 w-7 items-center justify-center ${styles.icon}`}>
           <Icon size={17} />
         </div>
 
-        <span className="text-xs text-slate-400">{title}</span>
+        <span className="text-sm text-slate-600">{title}</span>
       </div>
 
-      <p className={`mt-5 text-3xl font-bold ${styles.value}`}>{value}</p>
+      <p className={`mt-2 text-2xl font-semibold tabular-nums ${styles.value}`}>{value}</p>
 
-      <p className="mt-1 text-[10px] text-slate-600">{description}</p>
+      <p className="mt-0.5 text-xs text-slate-500">{description}</p>
     </div>
   );
 }

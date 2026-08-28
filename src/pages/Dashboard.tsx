@@ -15,29 +15,28 @@ function Dashboard() {
   const [layers, setLayers] = useState({ risk: true, roads: true, incidents: true });
   const layerButtons = [{ key: "risk", label: "Risk" }, { key: "roads", label: "Roads" }, { key: "incidents", label: "Incidents" }] as const;
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6">
+    <div className="mx-auto max-w-[1440px] space-y-5">
       {/* Welcome */}
-      <section className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+      <section className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-400">
-            Northeast India
+          <p className="text-sm font-medium text-slate-500">
+            Northeast Region · Operational overview
           </p>
 
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-white lg:text-3xl">
-            Good evening, Administrator
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 lg:text-3xl">
+            Current situation
           </h1>
 
-          <p className="mt-2 max-w-2xl text-sm text-slate-500">
-            Monitor landslide risk, road conditions and emergency incidents
-            across the region.
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
+            Monitor risk areas, road conditions, and emergency reports across the region.
           </p>
         </div>
 
-        <Link to="/reports" className="rounded-lg bg-cyan-400 px-4 py-2.5 text-center text-xs font-bold text-slate-950 transition hover:bg-cyan-300">+ Report Incident</Link>
+        <Link to="/reports" className="border border-blue-700 bg-blue-700 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-800">Report incident</Link>
       </section>
 
       {/* Statistics */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid divide-y divide-slate-200 border-y border-slate-200 bg-white sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
         <StatCard
           title="High Risk Zones"
           value={dashboardStats.highRiskZones}
@@ -72,17 +71,17 @@ function Dashboard() {
       </section>
 
       {/* Map section */}
-      <section className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-800 p-5 sm:flex-row sm:items-center">
+      <section className="overflow-hidden border border-slate-200 bg-white">
+        <div className="flex flex-col justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:px-5">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-400">
-              Live Monitoring
+            <p className="text-xs font-medium text-slate-500">
+              Live monitoring
             </p>
 
-            <h2 className="mt-1 text-base font-semibold">Regional Risk Map</h2>
+            <h2 className="mt-0.5 text-lg font-semibold text-slate-900">Regional risk map</h2>
           </div>
 
-          <div className="flex gap-1 rounded-lg bg-slate-950 p-1">{layerButtons.map(({ key, label }) => <button key={key} onClick={() => setLayers((current) => ({ ...current, [key]: !current[key] }))} aria-pressed={layers[key]} className={`rounded-md px-3 py-1.5 text-[10px] font-medium transition ${layers[key] ? "bg-slate-800 text-cyan-400" : "text-slate-500 hover:text-slate-200"}`}>{label}</button>)}</div>
+          <div className="flex border border-slate-200 bg-slate-50">{layerButtons.map(({ key, label }) => <button key={key} onClick={() => setLayers((current) => ({ ...current, [key]: !current[key] }))} aria-pressed={layers[key]} className={`border-r border-slate-200 px-3 py-2 text-xs font-medium last:border-r-0 transition ${layers[key] ? "bg-white text-blue-700" : "text-slate-500 hover:bg-white hover:text-slate-800"}`}>{label}</button>)}</div>
         </div>
 
         <RiskMap compact layers={layers} />

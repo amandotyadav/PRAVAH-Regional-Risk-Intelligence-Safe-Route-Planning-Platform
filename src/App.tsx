@@ -14,13 +14,13 @@ import SettingsPage from "./pages/SettingsPage";
 function ApplicationShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
-      <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="min-h-screen bg-[#f5f6f4] text-slate-800">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <div className="min-h-screen lg:ml-64">
+        <div className="min-h-screen lg:ml-56">
           <Header onMenuOpen={() => setSidebarOpen(true)} />
 
-          <main className="p-4 sm:p-6 lg:p-8">
+          <main className="p-4 sm:p-6 lg:p-8 xl:p-10">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/risk-map" element={<RiskMapPage />} />

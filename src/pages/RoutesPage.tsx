@@ -5,7 +5,7 @@ import { routeResult } from "../data/mockData";
 import type { RouteRequest } from "../types";
 function RoutesPage() {
   const [request, setRequest] = useState<RouteRequest | null>(null);
-  return <div className="mx-auto max-w-5xl space-y-6"><section><p className="text-[10px] font-bold uppercase tracking-[.18em] text-cyan-400">Route intelligence</p><h1 className="mt-2 text-2xl font-bold">Safe Routes</h1><p className="mt-2 text-sm text-slate-400">Calculate routes that avoid verified blocks and high-risk road segments.</p></section><div className="grid gap-6 lg:grid-cols-2"><RoutePanel onSubmit={setRequest} />{request ? <RouteSummary route={routeResult} /> : <div className="flex min-h-64 items-center justify-center rounded-xl border border-dashed border-slate-700 bg-slate-900 p-6 text-center text-sm text-slate-500">Choose a start and destination to calculate a safe route.</div>}</div></div>;
+  return <div className="mx-auto max-w-5xl space-y-5"><section className="border-b border-slate-200 pb-5"><p className="text-sm font-medium text-slate-500">Journey planning</p><h1 className="mt-1 text-2xl font-semibold text-slate-900">Find a safer route</h1><p className="mt-1.5 text-sm leading-6 text-slate-600">Plan around verified blocks and areas with elevated landslide risk.</p></section><div className="grid gap-5 lg:grid-cols-2"><RoutePanel onSubmit={setRequest} />{request ? <RouteSummary route={routeResult} /> : <div className="flex min-h-64 items-center justify-center border border-dashed border-slate-300 bg-white p-6 text-center text-sm leading-6 text-slate-500">Choose a starting location and destination to see the recommended route.</div>}</div></div>;
 }
 
 export default RoutesPage;
