@@ -9,13 +9,60 @@ body {
   min-height: 100vh;
   background: #f5f6f4;
   color: #1e293b;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
-button, a, select, input, textarea { -webkit-tap-highlight-color: transparent; }
-button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
-.incident-marker { background: transparent; border: 0; }
-.incident-marker span { display: block; width: 16px; height: 16px; border: 3px solid #fff; border-radius: 9999px; box-shadow: 0 1px 3px rgba(15, 23, 42, .35); }
-.route-endpoint-marker { background: transparent; border: 0; }
-.route-endpoint-marker span { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 3px solid #fff; border-radius: 9999px; box-shadow: 0 1px 4px rgba(15, 23, 42, .35); color: #fff; font-size: 11px; font-weight: 700; }
-.leaflet-container { font-family: inherit; }
+button,
+a,
+select,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.incident-marker {
+  background: transparent;
+  border: 0;
+}
+.incident-marker span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 9999px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
+}
+.route-endpoint-marker {
+  background: transparent;
+  border: 0;
+}
+.route-endpoint-marker span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 3px solid #fff;
+  border-radius: 9999px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.leaflet-container {
+  font-family: inherit;
+}

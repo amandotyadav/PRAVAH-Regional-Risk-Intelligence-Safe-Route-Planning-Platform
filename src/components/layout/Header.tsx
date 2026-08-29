@@ -2,15 +2,15 @@ import { Bell, ChevronDown, CircleCheck, Menu, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-const pageTitles: Record<string, string> = { "/": "Risk Monitoring Dashboard", "/risk-map": "Regional Risk Map", "/routes": "Safe Route Planning", "/incidents": "Incident Management", "/reports": "Report Incident", "/settings": "System Settings" };
+const pageTitles: Record<string, string> = { "/": "Regional Risk Overview", "/risk-map": "Risk Map", "/routes": "Safe Routes", "/incidents": "Incidents", "/reports": "Report an Incident", "/settings": "Settings" };
 function Header({ onMenuOpen }: { onMenuOpen: () => void }) {
   const location = useLocation();
-  const title = pageTitles[location.pathname] ?? "Command Center";
+  const title = pageTitles[location.pathname] ?? "PRAVAH";
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   return (
     <header className="sticky top-0 z-[1000] flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6 lg:px-8">
-      <div className="flex min-w-0 items-center gap-3"><button aria-label="Open navigation" onClick={onMenuOpen} className="flex h-10 w-10 shrink-0 items-center justify-center text-slate-700 lg:hidden"><Menu size={21} /></button><div className="min-w-0"><p className="hidden text-xs text-slate-500 sm:block">Command Center</p>
+      <div className="flex min-w-0 items-center gap-3"><button aria-label="Open menu" onClick={onMenuOpen} className="flex h-10 w-10 shrink-0 items-center justify-center text-slate-700 lg:hidden"><Menu size={21} /></button><div className="min-w-0"><p className="hidden text-xs text-slate-500 sm:block">Dashboard</p>
 
         <h2 className="truncate text-base font-semibold text-slate-900 sm:mt-0.5 sm:text-lg">{title}</h2></div></div>
 
@@ -19,7 +19,7 @@ function Header({ onMenuOpen }: { onMenuOpen: () => void }) {
         <div className="hidden items-center gap-2 md:flex">
           <CircleCheck size={15} className="text-emerald-600" />
 
-          <span className="text-xs text-slate-600">System operational</span>
+          <span className="text-xs text-slate-600">Services available</span>
         </div>
 
         {/* Notifications */}
@@ -36,15 +36,13 @@ function Header({ onMenuOpen }: { onMenuOpen: () => void }) {
           </div>
 
           <div className="hidden text-left sm:block">
-            <p className="text-xs font-semibold text-slate-800">
-              Administrator
-            </p>
+            <p className="text-xs font-semibold text-slate-800">User</p>
 
-            <p className="text-[11px] text-slate-500">Emergency Operations</p>
+            <p className="text-[11px] text-slate-500">Staff</p>
           </div>
 
           <ChevronDown size={14} className="text-slate-400" />
-        </button>{profileOpen && <div className="absolute right-0 top-12 w-52 border border-slate-200 bg-white p-2 shadow-lg"><p className="px-3 py-2 text-xs text-slate-500">Administrator</p><Link to="/settings" onClick={() => setProfileOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"><Settings size={15} />Settings</Link></div>}</div>
+        </button>{profileOpen && <div className="absolute right-0 top-12 w-52 border border-slate-200 bg-white p-2 shadow-lg"><p className="px-3 py-2 text-xs text-slate-500">User</p><Link to="/settings" onClick={() => setProfileOpen(false)} className="flex items-center gap-2 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"><Settings size={15} />Settings</Link></div>}</div>
       </div>
     </header>
   );

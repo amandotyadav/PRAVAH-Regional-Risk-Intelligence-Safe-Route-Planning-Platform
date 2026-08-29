@@ -20,19 +20,19 @@ function Dashboard() {
       <section className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
         <div>
           <p className="text-sm font-medium text-slate-500">
-            Northeast Region · Operational overview
+            Northeast Region · Current risk information
           </p>
 
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 lg:text-3xl">
-            Current situation
+            Current Risk Overview
           </h1>
 
           <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
-            Monitor risk areas, road conditions, and emergency reports across the region.
+            View current risk areas, road conditions, and reported incidents across the region.
           </p>
         </div>
 
-        <Link to="/reports" className="border border-blue-700 bg-blue-700 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-800">Report incident</Link>
+        <Link to="/reports" className="border border-blue-700 bg-blue-700 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-800">Report Incident</Link>
       </section>
 
       {/* Statistics */}
@@ -40,7 +40,7 @@ function Dashboard() {
         <StatCard
           title="High Risk Zones"
           value={dashboardStats.highRiskZones}
-          description="Across monitored region"
+          description="Across the region"
           icon={ShieldAlert}
           variant="danger"
         />
@@ -62,9 +62,9 @@ function Dashboard() {
         />
 
         <StatCard
-          title="Routes Monitored"
+          title="Monitored Routes"
           value={dashboardStats.routesMonitored}
-          description="2 active journeys"
+          description="Currently monitored"
           icon={Navigation}
           variant="success"
         />
@@ -75,10 +75,10 @@ function Dashboard() {
         <div className="flex flex-col justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:px-5">
           <div>
             <p className="text-xs font-medium text-slate-500">
-              Live monitoring
+              Current risk information
             </p>
 
-            <h2 className="mt-0.5 text-lg font-semibold text-slate-900">Regional risk map</h2>
+            <h2 className="mt-0.5 text-lg font-semibold text-slate-900">Risk Map</h2>
           </div>
 
           <div className="flex border border-slate-200 bg-slate-50">{layerButtons.map(({ key, label }) => <button key={key} onClick={() => setLayers((current) => ({ ...current, [key]: !current[key] }))} aria-pressed={layers[key]} className={`border-r border-slate-200 px-3 py-2 text-xs font-medium last:border-r-0 transition ${layers[key] ? "bg-white text-blue-700" : "text-slate-500 hover:bg-white hover:text-slate-800"}`}>{label}</button>)}</div>

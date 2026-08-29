@@ -5,7 +5,6 @@ import {
   Map,
   Navigation,
   Settings,
-  ShieldCheck,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -54,17 +53,13 @@ function Sidebar({ open, onClose }: SidebarProps) {
         <div>
           <h1 className="text-base font-bold tracking-tight text-slate-900">PRAVAH</h1>
 
-          <p className="text-[11px] text-slate-500">
-            Emergency operations
-          </p>
+          <p className="text-[11px] text-slate-500">Regional Safety & Risk Information</p>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-5">
-        <p className="mb-2 px-2 text-xs font-medium text-slate-500">
-          Navigation
-        </p>
+        <p className="mb-2 px-2 text-xs font-medium text-slate-500">Menu</p>
 
         {navigationItems.map((item) => {
           const Icon = item.icon;
@@ -99,20 +94,14 @@ function Sidebar({ open, onClose }: SidebarProps) {
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
 
-            <span className="text-xs font-semibold text-slate-700">
-              System Online
-            </span>
+            <span className="text-xs font-semibold text-slate-700">Service status</span>
           </div>
 
           <p className="mt-1 pl-4 text-[11px] text-slate-500">
-            All services operational
+            All services available
           </p>
         </div>
 
-        <div className="flex items-center gap-2 px-2 text-[11px] text-slate-400">
-          <ShieldCheck size={13} />
-          PRAVAH v0.1
-        </div>
       </div>
       </aside>
     </>
