@@ -1,75 +1,95 @@
-# React + TypeScript + Vite
+# PRAVAH
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### Regional Risk Intelligence & Safe Route Planning Platform
 
-Currently, two official plugins are available:
+PRAVAH is a disaster-management and regional risk intelligence platform designed to help authorities, emergency responders, field teams, and local users understand road and geographic risks across the Northeast Region of India.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The platform brings together risk predictions, road conditions, incident reports, and safe-route planning into a single, easy-to-use interface.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚨 Problem
 
-## Expanding the ESLint configuration
+The Northeast Region of India faces recurring challenges such as:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Landslides
+- Flooding
+- Heavy rainfall
+- Road blockages
+- Difficult terrain
+- Remote and poorly connected areas
+- Delayed information during emergencies
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Information about these conditions can come from different sources and may not be available in a single place.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+During an emergency, users need to quickly answer questions such as:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+> What areas are currently at risk?
 
-```
+> Which roads are affected?
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+> Where are active incidents?
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+> Which route is safer?
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+> How can a new incident be reported?
 
+PRAVAH aims to provide a unified platform for answering these questions.
+
+---
+
+## 💡 Solution
+
+PRAVAH provides a centralized regional risk interface that combines:
+
+- Geographic risk information
+- Road-segment risk predictions
+- Incident monitoring
+- Road blockage information
+- Safe route planning
+- Incident reporting
+- Interactive GIS maps
+
+The platform is designed with simplicity in mind so that it can be used by both technical and non-technical users.
+
+---
+
+## ✨ Key Features
+
+### 🗺️ Regional Risk Map
+
+Interactive map-based visualization of risk across monitored road segments and geographic areas.
+
+Users can view:
+
+- Risk levels
+- Risk scores
+- Road segments
+- Incidents
+- Road conditions
+- Geographic locations
+
+Risk levels are represented as:
+
+| Level       | Meaning       |
+| ----------- | ------------- |
+| 🟢 LOW      | Low risk      |
+| 🟡 MEDIUM   | Moderate risk |
+| 🟠 HIGH     | High risk     |
+| 🔴 CRITICAL | Critical risk |
+
+---
+
+### 🛣️ Safe Route Planning
+
+PRAVAH helps users identify safer routes between locations.
+
+Users can select:
+
+```text
+Starting Location
+        ↓
+Destination
+        ↓
+Find Safe Route
 ```
