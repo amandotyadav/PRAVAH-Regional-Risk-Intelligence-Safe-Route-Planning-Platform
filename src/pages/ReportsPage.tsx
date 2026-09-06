@@ -236,7 +236,7 @@ export default function ReportsPage() {
               <LoadingState message="Loading map…" />
             </div>
           ) : (
-            <div className="h-[45vh] min-h-[300px] w-full lg:h-[60vh]">
+            <div className="h-[45vh] min-h-75 w-full lg:h-[60vh]">
               <BaseMap ariaLabel="Map for selecting the affected road">
                 <FitBounds bounds={network.data?.bounds ?? null} />
                 <MapClickHandler onPick={selectRoadNear} />
