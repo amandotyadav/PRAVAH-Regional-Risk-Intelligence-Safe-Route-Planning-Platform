@@ -1,13 +1,14 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, FilePlus2, Map, RefreshCw, Route } from 'lucide-react'
+import { AlertTriangle, Check, FilePlus2, Map, RefreshCw, Route } from 'lucide-react'
 import Card from '../components/common/Card'
 import SummaryTile from '../components/dashboard/SummaryTile'
 import RiskBreakdown from '../components/dashboard/RiskBreakdown'
 import { EmptyState, ErrorState, LoadingState } from '../components/common/StateViews'
 import { SeverityTag, VerificationTag } from '../components/incidents/IncidentCard'
 import { useApiResource } from '../hooks/useApiResource'
-import { getAlerts, getIncidents, getRoadRisks } from '../services/pravah'
+import { acknowledgeAlert, getAlerts, getIncidents, getRoadRisks } from '../services/pravah'
+import { toUserMessage } from '../services/errors'
 import { RISK_PRESENTATION } from '../utils/risk'
 import { INCIDENT_TYPE_LABELS, formatRelativeTime, roadDisplayName } from '../utils/format'
 
@@ -27,6 +28,23 @@ export default function Dashboard() {
   const alerts = useApiResource(() => getAlerts({ acknowledged: false }), [], {
     errorMessage: 'Route warnings could not be loaded.',
   })
+
+  // Tracked locally: which warning is mid-request, and one that failed.
+  const [acknowledgingId, setAcknowledgingId] = useState<number | null>(null)
+  const [acknowledgeError, setAcknowledgeError] = useState<string | null>(null)
+
+  const handleAcknowledge = async (alertId: number) => {
+    setAcknowledgingId(alertId)
+    setAcknowledgeError(null)
+    try {
+      await acknowledgeAlert(alertId)
+      alerts.reload()
+    } catch (cause) {
+      setAcknowledgeError(toUserMessage(cause, 'The warning could not be acknowledged. Please try again.'))
+    } finally {
+      setAcknowledgingId(null)
+    }
+  }
 
   const summary = useMemo(() => {
     const assessments = risks.data ?? []
@@ -75,17 +93,28 @@ export default function Dashboard() {
         <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3.5" role="status">
           <div className="flex gap-2.5">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-amber-900">
-                {alerts.data?.length} route warning{alerts.data?.length === 1 ? '' : 's'} need attention
+                {alerts.data?.length} route warning{alerts.data?.length === 1 ? '' : 's'}{' '}
+                {alerts.data?.length === 1 ? 'needs' : 'need'} attention
               </p>
-              <ul className="mt-1.5 space-y-1">
+              <ul className="mt-2 space-y-2">
                 {alerts.data?.slice(0, 3).map((alert) => (
-                  <li key={alert.id} className="text-sm text-amber-900">
-                    {alert.message}
+                  <li key={alert.id} className="flex flex-wrap items-start justify-between gap-2">
+                    <span className="text-sm text-amber-900">{alert.message}</span>
+                    <button
+                      type="button"
+                      onClick={() => void handleAcknowledge(alert.id)}
+                      disabled={acknowledgingId === alert.id}
+                      className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+                    >
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                      {acknowledgingId === alert.id ? 'Acknowledging…' : 'Acknowledge'}
+                    </button>
                   </li>
                 ))}
               </ul>
+              {acknowledgeError && <p className="mt-2 text-sm text-red-800">{acknowledgeError}</p>}
             </div>
           </div>
         </div>

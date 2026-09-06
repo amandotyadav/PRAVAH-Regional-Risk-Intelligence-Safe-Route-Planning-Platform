@@ -11,7 +11,7 @@ import ReportForm, { type ReportFormValues } from '../components/reports/ReportF
 import Card from '../components/common/Card'
 import { ErrorState, LoadingState } from '../components/common/StateViews'
 import { useRoadNetwork } from '../hooks/useRoadNetwork'
-import { createIncident } from '../services/pravah'
+import { createIncident, deleteIncident } from '../services/pravah'
 import { toUserMessage } from '../services/errors'
 import { midpointOf, nearestFeature } from '../utils/geo'
 import type { Incident, RoadFeature } from '../types'
@@ -103,12 +103,32 @@ export default function ReportsPage() {
     }
   }, [selectedRoad, values])
 
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
+
   const handleReportAnother = useCallback(() => {
     setSubmitted(null)
     setValues(INITIAL_VALUES)
     setSelectedRoad(null)
     setSubmitError(null)
+    setWithdrawError(null)
   }, [])
+
+  // Offered only for the report just filed in this session, on this screen -
+  // never as a general action on someone else's report from the incidents list.
+  const handleWithdraw = useCallback(async () => {
+    if (!submitted) return
+    setIsWithdrawing(true)
+    setWithdrawError(null)
+    try {
+      await deleteIncident(submitted.id)
+      handleReportAnother()
+    } catch (cause) {
+      setWithdrawError(toUserMessage(cause, 'The report could not be withdrawn. Please try again.'))
+    } finally {
+      setIsWithdrawing(false)
+    }
+  }, [submitted, handleReportAnother])
 
   const markerPosition = useMemo(
     () => (selectedRoad ? midpointOf(selectedRoad.geometry.coordinates) : null),
@@ -179,6 +199,19 @@ export default function ReportsPage() {
             >
               View all incidents
             </Link>
+          </div>
+
+          {withdrawError && <p className="mt-3 text-sm text-red-800">{withdrawError}</p>}
+
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={() => void handleWithdraw()}
+              disabled={isWithdrawing}
+              className="text-sm font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900 disabled:opacity-60"
+            >
+              {isWithdrawing ? 'Withdrawing report…' : 'Reported by mistake? Withdraw this report'}
+            </button>
           </div>
         </Card>
       </div>

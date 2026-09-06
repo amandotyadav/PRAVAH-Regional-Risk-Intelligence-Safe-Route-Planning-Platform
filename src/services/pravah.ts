@@ -109,6 +109,16 @@ export async function createIncident(payload: IncidentCreate): Promise<Incident>
   return data
 }
 
+/**
+ * DELETE /api/v1/incidents/{id} - a hard delete, with no ownership check on the
+ * backend. Only offer this for a report the current person just filed in this
+ * session (e.g. to undo a mistake), never as a general action on someone else's
+ * report browsed from the incidents list.
+ */
+export async function deleteIncident(id: number): Promise<void> {
+  await api.delete(`${V1}/incidents/${id}`)
+}
+
 /* ------------------------------------------------------------- shipments */
 
 /** POST /api/v1/shipments/ */
