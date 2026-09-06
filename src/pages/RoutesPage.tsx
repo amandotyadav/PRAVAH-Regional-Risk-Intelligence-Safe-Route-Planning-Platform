@@ -12,9 +12,12 @@ import type { RoutePoint } from '../components/routing/types'
 import Card from '../components/common/Card'
 import { ErrorState, LoadingState } from '../components/common/StateViews'
 import { useRoadNetwork } from '../hooks/useRoadNetwork'
+import { usePlaceSearch } from '../hooks/usePlaceSearch'
+import type { PlaceSuggestion } from '../services/geocoding'
 import { createShipment, getRoadGeometry, recommendRoute } from '../services/pravah'
 import { isNotFound, toUserMessage } from '../services/errors'
 import { buildRoutePaths, distanceMetres, nearestRoutableNode } from '../utils/geo'
+import { formatCoordinate } from '../utils/format'
 import type { CargoType, RouteRecommendation, ShipmentPriority } from '../types'
 
 interface RouteResult {
@@ -29,9 +32,14 @@ export default function RoutesPage() {
 
   const [origin, setOrigin] = useState<RoutePoint | null>(null)
   const [destination, setDestination] = useState<RoutePoint | null>(null)
+  const [originQuery, setOriginQuery] = useState('')
+  const [destinationQuery, setDestinationQuery] = useState('')
   const [activeSelection, setActiveSelection] = useState<PointSelection>('origin')
   const [cargoType, setCargoType] = useState<CargoType>('emergency')
   const [priority, setPriority] = useState<ShipmentPriority>('critical')
+
+  const originSearch = usePlaceSearch(originQuery, network.data)
+  const destinationSearch = usePlaceSearch(destinationQuery, network.data)
 
   const [result, setResult] = useState<RouteResult | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -41,9 +49,14 @@ export default function RoutesPage() {
   const [isLocating, setIsLocating] = useState(false)
   const [locationMessage, setLocationMessage] = useState<string | null>(null)
 
-  /** Snap a tapped point onto the connected road network the backend can route on. */
+  /**
+   * Snap a point onto the connected road network the backend can route on,
+   * whether it came from a map tap, a search suggestion, or geolocation. When
+   * `label` is omitted (a bare map tap) the field shows the resolved
+   * coordinates instead, same as before search existed.
+   */
   const pickPoint = useCallback(
-    (lat: number, lon: number, selection: PointSelection) => {
+    (lat: number, lon: number, selection: PointSelection, label?: string) => {
       if (!network.data) return
 
       const node = nearestRoutableNode(network.data, lat, lon)
@@ -54,12 +67,15 @@ export default function RoutesPage() {
 
       const snappedMetres = Math.round(distanceMetres(lat, lon, node.lat, node.lon))
       const point: RoutePoint = { lat: node.lat, lon: node.lon, nodeId: node.id, snappedMetres }
+      const text = label ?? formatCoordinate(node.lat, node.lon)
 
       if (selection === 'origin') {
         setOrigin(point)
+        setOriginQuery(text)
         setActiveSelection('destination')
       } else {
         setDestination(point)
+        setDestinationQuery(text)
       }
 
       setSnapNotice(
@@ -76,6 +92,16 @@ export default function RoutesPage() {
     [pickPoint, activeSelection],
   )
 
+  const handleSelectOriginSuggestion = useCallback(
+    (suggestion: PlaceSuggestion) => pickPoint(suggestion.lat, suggestion.lon, 'origin', suggestion.label),
+    [pickPoint],
+  )
+  const handleSelectDestinationSuggestion = useCallback(
+    (suggestion: PlaceSuggestion) =>
+      pickPoint(suggestion.lat, suggestion.lon, 'destination', suggestion.label),
+    [pickPoint],
+  )
+
   const handleUseCurrentLocation = useCallback(() => {
     if (!('geolocation' in navigator)) {
       setLocationMessage('This device cannot share its location. Tap the map instead.')
@@ -88,7 +114,12 @@ export default function RoutesPage() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setIsLocating(false)
-        pickPoint(position.coords.latitude, position.coords.longitude, activeSelection)
+        pickPoint(
+          position.coords.latitude,
+          position.coords.longitude,
+          activeSelection,
+          'Your current location',
+        )
       },
       () => {
         setIsLocating(false)
@@ -101,6 +132,8 @@ export default function RoutesPage() {
   const handleClear = useCallback(() => {
     setOrigin(null)
     setDestination(null)
+    setOriginQuery('')
+    setDestinationQuery('')
     setActiveSelection('origin')
     setResult(null)
     setRouteError(null)
@@ -178,8 +211,22 @@ export default function RoutesPage() {
               <LoadingState message="Loading road information…" />
             ) : (
               <RoutePanel
-                origin={origin}
-                destination={destination}
+                originField={{
+                  query: originQuery,
+                  onQueryChange: setOriginQuery,
+                  suggestions: originSearch.suggestions,
+                  isSearching: originSearch.isLoading,
+                  onSelect: handleSelectOriginSuggestion,
+                  point: origin,
+                }}
+                destinationField={{
+                  query: destinationQuery,
+                  onQueryChange: setDestinationQuery,
+                  suggestions: destinationSearch.suggestions,
+                  isSearching: destinationSearch.isLoading,
+                  onSelect: handleSelectDestinationSuggestion,
+                  point: destination,
+                }}
                 activeSelection={activeSelection}
                 onActiveSelectionChange={setActiveSelection}
                 cargoType={cargoType}

@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { NAV_ITEMS } from './navigation'
+import BrandMark from '../common/BrandMark'
 
 interface SidebarProps {
   /** Drawer state on small screens. The sidebar is always visible on desktop. */
@@ -35,9 +36,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         }`}
       >
         <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4 md:h-16">
-          <div className="min-w-0">
-            <p className="text-base font-semibold tracking-tight text-slate-900">PRAVAH</p>
-            <p className="truncate text-xs text-slate-500">Northeast Region</p>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <BrandMark size={30} />
+            <div className="min-w-0">
+              <p className="text-base font-semibold tracking-tight text-slate-900">PRAVAH</p>
+              <p className="truncate text-xs text-slate-500">Northeast Region</p>
+            </div>
           </div>
           <button
             type="button"

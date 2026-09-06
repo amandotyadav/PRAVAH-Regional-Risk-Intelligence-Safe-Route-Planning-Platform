@@ -1,7 +1,9 @@
 import { Crosshair, LocateFixed, Search } from 'lucide-react'
 import type { CargoType, ShipmentPriority } from '../../types'
-import type { RoutePoint } from './types'
+import type { PlaceSuggestion } from '../../services/geocoding'
+import LocationSearchField from './LocationSearchField'
 import { formatCoordinate } from '../../utils/format'
+import type { RoutePoint } from './types'
 
 /** Values come straight from app/core/enums.py; only the wording is ours. */
 const CARGO_OPTIONS: { value: CargoType; label: string }[] = [
@@ -19,9 +21,19 @@ const PRIORITY_OPTIONS: { value: ShipmentPriority; label: string; hint: string }
 
 export type PointSelection = 'origin' | 'destination'
 
+/** Everything one location field (start or destination) needs to search and display. */
+export interface LocationFieldState {
+  query: string
+  onQueryChange: (text: string) => void
+  suggestions: PlaceSuggestion[]
+  isSearching: boolean
+  onSelect: (suggestion: PlaceSuggestion) => void
+  point: RoutePoint | null
+}
+
 interface RoutePanelProps {
-  origin: RoutePoint | null
-  destination: RoutePoint | null
+  originField: LocationFieldState
+  destinationField: LocationFieldState
   activeSelection: PointSelection
   onActiveSelectionChange: (selection: PointSelection) => void
   cargoType: CargoType
@@ -37,40 +49,9 @@ interface RoutePanelProps {
   isReady: boolean
 }
 
-function PointButton({
-  label,
-  point,
-  isActive,
-  onClick,
-}: {
-  label: string
-  point: RoutePoint | null
-  isActive: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={isActive}
-      className={`w-full rounded-md border px-3 py-2.5 text-left ${
-        isActive ? 'border-blue-600 bg-blue-50' : 'border-slate-300 bg-white hover:bg-slate-50'
-      }`}
-    >
-      <span className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium text-slate-500">{label}</span>
-        {isActive && <span className="text-xs font-medium text-blue-700">Tap the map</span>}
-      </span>
-      <span className="tabular mt-1 block text-sm text-slate-900">
-        {point ? formatCoordinate(point.lat, point.lon) : 'Not set'}
-      </span>
-    </button>
-  )
-}
-
 export default function RoutePanel({
-  origin,
-  destination,
+  originField,
+  destinationField,
   activeSelection,
   onActiveSelectionChange,
   cargoType,
@@ -96,20 +77,37 @@ export default function RoutePanel({
       <fieldset>
         <legend className="text-sm font-semibold text-slate-900">Where are you travelling?</legend>
         <p className="mt-0.5 text-xs text-slate-500">
-          Choose a box, then tap a point on the map. Points snap to the nearest connected road.
+          Type a place or road name, or tap a point on the map. Points snap to the nearest
+          connected road.
         </p>
-        <div className="mt-2.5 space-y-2">
-          <PointButton
+        <div className="mt-2.5 space-y-3">
+          <LocationSearchField
             label="Starting point (A)"
-            point={origin}
+            placeholder="Search for a place or road…"
+            value={originField.query}
+            onChange={originField.onQueryChange}
+            suggestions={originField.suggestions}
+            isLoading={originField.isSearching}
             isActive={activeSelection === 'origin'}
-            onClick={() => onActiveSelectionChange('origin')}
+            onFocus={() => onActiveSelectionChange('origin')}
+            onSelect={originField.onSelect}
+            coordinateHint={originField.point ? formatCoordinate(originField.point.lat, originField.point.lon) : null}
           />
-          <PointButton
+          <LocationSearchField
             label="Destination (B)"
-            point={destination}
+            placeholder="Search for a place or road…"
+            value={destinationField.query}
+            onChange={destinationField.onQueryChange}
+            suggestions={destinationField.suggestions}
+            isLoading={destinationField.isSearching}
             isActive={activeSelection === 'destination'}
-            onClick={() => onActiveSelectionChange('destination')}
+            onFocus={() => onActiveSelectionChange('destination')}
+            onSelect={destinationField.onSelect}
+            coordinateHint={
+              destinationField.point
+                ? formatCoordinate(destinationField.point.lat, destinationField.point.lon)
+                : null
+            }
           />
         </div>
 

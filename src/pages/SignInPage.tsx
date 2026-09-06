@@ -3,6 +3,7 @@ import { LogIn } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { toUserMessage } from '../services/errors'
 import { ErrorState } from '../components/common/StateViews'
+import BrandMark from '../components/common/BrandMark'
 
 export default function SignInPage() {
   const { signIn } = useAuth()
@@ -28,7 +29,8 @@ export default function SignInPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-xl font-semibold tracking-tight text-slate-900">PRAVAH</h1>
+          <BrandMark size={40} className="mx-auto" />
+          <h1 className="mt-2.5 text-xl font-semibold tracking-tight text-slate-900">PRAVAH</h1>
           <p className="mt-1 text-sm text-slate-600">
             Road conditions and safer routes for the Northeast Region
           </p>

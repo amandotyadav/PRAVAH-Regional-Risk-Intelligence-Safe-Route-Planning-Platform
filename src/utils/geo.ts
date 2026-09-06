@@ -19,26 +19,40 @@ export function midpointOf(positions: Position[]): LatLngTuple | null {
   return toLatLng(positions[Math.floor(positions.length / 2)])
 }
 
-/** Bounds covering every given path, or null when there is nothing to show. */
-export function boundsOfPaths(paths: LatLngTuple[][]): LatLngBoundsExpression | null {
+export interface LatLonExtent {
+  minLat: number
+  minLon: number
+  maxLat: number
+  maxLon: number
+}
+
+/** Plain numeric extent of every given path, or null when there is nothing to show. */
+export function extentOfPaths(paths: LatLngTuple[][]): LatLonExtent | null {
   let minLat = Infinity
-  let minLng = Infinity
+  let minLon = Infinity
   let maxLat = -Infinity
-  let maxLng = -Infinity
+  let maxLon = -Infinity
 
   for (const path of paths) {
-    for (const [lat, lng] of path) {
+    for (const [lat, lon] of path) {
       if (lat < minLat) minLat = lat
       if (lat > maxLat) maxLat = lat
-      if (lng < minLng) minLng = lng
-      if (lng > maxLng) maxLng = lng
+      if (lon < minLon) minLon = lon
+      if (lon > maxLon) maxLon = lon
     }
   }
 
   if (minLat === Infinity) return null
+  return { minLat, minLon, maxLat, maxLon }
+}
+
+/** Bounds covering every given path, or null when there is nothing to show. */
+export function boundsOfPaths(paths: LatLngTuple[][]): LatLngBoundsExpression | null {
+  const extent = extentOfPaths(paths)
+  if (!extent) return null
   return [
-    [minLat, minLng],
-    [maxLat, maxLng],
+    [extent.minLat, extent.minLon],
+    [extent.maxLat, extent.maxLon],
   ]
 }
 
@@ -85,6 +99,8 @@ export interface RoadNetwork {
   routableNodes: RoadNode[]
   /** Extent of every loaded road, so a map can open showing all of them. */
   bounds: LatLngBoundsExpression | null
+  /** The same extent as plain numbers, for services that aren't Leaflet (e.g. geocoding). */
+  extent: LatLonExtent | null
 }
 
 function endpointsOf(feature: RoadFeature): { from: Position; to: Position } | null {
@@ -118,12 +134,15 @@ export function buildRoadNetwork(collection: RoadFeatureCollection): RoadNetwork
     link(toNode, fromNode)
   }
 
+  const paths = features.map((feature) => toLatLngs(feature.geometry.coordinates))
+
   return {
     features,
     featureById,
     nodes,
     routableNodes: largestComponent(adjacency, nodes),
-    bounds: boundsOfPaths(features.map((feature) => toLatLngs(feature.geometry.coordinates))),
+    bounds: boundsOfPaths(paths),
+    extent: extentOfPaths(paths),
   }
 }
 
