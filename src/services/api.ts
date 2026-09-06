@@ -1,50 +1,70 @@
-import axios from "axios";
-import { mockRoutes } from "../data/mockData";
-import type { RouteCoordinates, RouteRequest, RouteResponse } from "../types";
+import axios, { AxiosError, type AxiosInstance } from 'axios'
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_BASE_URL ?? "/api", timeout: 10000 });
-export const getHealth = () => api.get("/health");
-export const getRiskMap = () => api.get("/risk-map");
-export const calculateRoute = (request: RouteRequest) => api.post("/route", request);
-export const submitReport = (report: FormData) => api.post("/reports", report);
-export const getIncidents = () => api.get("/incidents");
-export const getRoadStatus = () => api.get("/road-status");
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 
-interface BackendRouteResponse {
-  distance: string | number;
-  estimatedTime?: string;
-  duration?: string | number;
-  riskScore: number;
-  riskLevel: RouteResponse["riskLevel"];
-  avoidedSegments: number;
-  geometry: RouteCoordinates | { coordinates: [longitude: number, latitude: number][] };
-}
+const TOKEN_KEY = 'pravah.token'
+const USERNAME_KEY = 'pravah.username'
 
-function toLeafletCoordinates(geometry: BackendRouteResponse["geometry"]): RouteCoordinates {
-  if (Array.isArray(geometry)) return geometry;
-  return geometry.coordinates.map(([longitude, latitude]) => [latitude, longitude]);
-}
-
-function normalizeRoute(response: BackendRouteResponse, request: RouteRequest): RouteResponse {
-  return {
-    distance: typeof response.distance === "number" ? `${response.distance} km` : response.distance,
-    estimatedTime: response.estimatedTime ?? (typeof response.duration === "number" ? `${response.duration} min` : response.duration ?? "—"),
-    riskScore: response.riskScore,
-    riskLevel: response.riskLevel,
-    avoidedSegments: response.avoidedSegments,
-    geometry: toLeafletCoordinates(response.geometry),
-    origin: request.origin,
-    destination: request.destination,
-  };
-}
-
-export async function getSafeRoute(request: RouteRequest): Promise<RouteResponse> {
-  if (!import.meta.env.VITE_API_BASE_URL) {
-    const route = mockRoutes[`${request.origin}:${request.destination}`];
-    if (!route) throw new Error("No mock route is available for this journey.");
-    return route;
+export function getStoredToken(): string | null {
+  try {
+    return window.localStorage.getItem(TOKEN_KEY)
+  } catch {
+    return null
   }
-  const response = await calculateRoute(request);
-  return normalizeRoute(response.data as BackendRouteResponse, request);
 }
-export default api;
+
+export function storeSession(token: string, username: string): void {
+  try {
+    window.localStorage.setItem(TOKEN_KEY, token)
+    window.localStorage.setItem(USERNAME_KEY, username)
+  } catch {
+    /* storage unavailable (private mode); the session simply won't persist */
+  }
+}
+
+export function getStoredUsername(): string | null {
+  try {
+    return window.localStorage.getItem(USERNAME_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function clearSession(): void {
+  try {
+    window.localStorage.removeItem(TOKEN_KEY)
+    window.localStorage.removeItem(USERNAME_KEY)
+  } catch {
+    /* nothing to clear */
+  }
+}
+
+/** Raised when the backend rejects the token, so the shell can return to sign-in. */
+export const UNAUTHORIZED_EVENT = 'pravah:unauthorized'
+
+export const api: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: { Accept: 'application/json' },
+  timeout: 60_000,
+})
+
+api.interceptors.request.use((config) => {
+  const token = getStoredToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      clearSession()
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT))
+    }
+    return Promise.reject(error)
+  },
+)
+
+export { BASE_URL }

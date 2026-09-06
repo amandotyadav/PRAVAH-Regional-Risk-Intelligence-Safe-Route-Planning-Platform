@@ -1,111 +1,81 @@
-import {
-  AlertTriangle,
-  FileText,
-  Gauge,
-  Map,
-  Navigation,
-  Settings,
-} from "lucide-react";
+import { NavLink } from 'react-router-dom'
+import { X } from 'lucide-react'
+import { NAV_ITEMS } from './navigation'
 
-import { NavLink } from "react-router-dom";
-
-const navigationItems = [
-  {
-    name: "Dashboard",
-    path: "/",
-    icon: Gauge,
-  },
-  {
-    name: "Risk Map",
-    path: "/risk-map",
-    icon: Map,
-  },
-  {
-    name: "Safe Routes",
-    path: "/routes",
-    icon: Navigation,
-  },
-  {
-    name: "Incidents",
-    path: "/incidents",
-    icon: AlertTriangle,
-  },
-  {
-    name: "Reports",
-    path: "/reports",
-    icon: FileText,
-  },
-];
-
-interface SidebarProps { open: boolean; onClose: () => void; }
-
-function Sidebar({ open, onClose }: SidebarProps) {
-  return (
-    <>
-      <button aria-label="Close navigation" onClick={onClose} className={`fixed inset-0 z-[1050] bg-slate-900/35 transition lg:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`} />
-      <aside className={`fixed left-0 top-0 z-[1100] flex h-dvh w-72 -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:w-56 lg:translate-x-0 ${open ? "translate-x-0" : ""}`}>
-      {/* Logo */}
-      <div className="flex h-16 items-center gap-3 border-b border-slate-200 px-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-700 text-sm font-black text-white">
-          P
-        </div>
-
-        <div>
-          <h1 className="text-base font-bold tracking-tight text-slate-900">PRAVAH</h1>
-
-          <p className="text-[11px] text-slate-500">Regional Safety & Risk Information</p>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-5">
-        <p className="mb-2 px-2 text-xs font-medium text-slate-500">Menu</p>
-
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              end={item.path === "/"}
-              className={({ isActive }) =>
-                [
-                  "flex items-center gap-3 border-l-2 px-3 py-2.5 text-sm transition",
-                  isActive
-                    ? "border-blue-700 bg-blue-50 font-medium text-blue-800"
-                    : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900",
-                ].join(" ")
-              }
-            >
-              <Icon size={18} />
-              <span>{item.name}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      {/* Bottom */}
-      <div className="space-y-3 border-t border-slate-200 p-3">
-        <NavLink to="/settings" onClick={onClose} className={({ isActive }) => `flex w-full items-center gap-3 border-l-2 px-3 py-2.5 text-sm transition ${isActive ? "border-blue-700 bg-blue-50 font-medium text-blue-800" : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}><Settings size={18} />Settings</NavLink>
-
-        <div className="border border-slate-200 bg-slate-50 p-3">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-
-            <span className="text-xs font-semibold text-slate-700">Service status</span>
-          </div>
-
-          <p className="mt-1 pl-4 text-[11px] text-slate-500">
-            All services available
-          </p>
-        </div>
-
-      </div>
-      </aside>
-    </>
-  );
+interface SidebarProps {
+  /** Drawer state on small screens. The sidebar is always visible on desktop. */
+  isOpen: boolean
+  onClose: () => void
 }
 
-export default Sidebar;
+function linkClasses(isActive: boolean): string {
+  const base =
+    'flex items-start gap-3 rounded-md px-3 py-2.5 text-sm transition-colors md:py-2 md:items-center'
+  return isActive
+    ? `${base} bg-slate-100 font-medium text-slate-900`
+    : `${base} text-slate-700 hover:bg-slate-50 hover:text-slate-900`
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  return (
+    <>
+      {/* Overlay: tapping anywhere outside the drawer closes it. */}
+      <div
+        className={`fixed inset-0 z-30 bg-slate-900/40 transition-opacity md:hidden ${
+          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <div
+        id="main-navigation"
+        className={`fixed inset-y-0 left-0 z-40 flex w-[17rem] max-w-[85vw] flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-out md:sticky md:top-0 md:z-auto md:h-screen md:w-56 md:max-w-none md:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="flex h-14 items-center justify-between border-b border-slate-200 px-4 md:h-16">
+          <div className="min-w-0">
+            <p className="text-base font-semibold tracking-tight text-slate-900">PRAVAH</p>
+            <p className="truncate text-xs text-slate-500">Northeast Region</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="-mr-1 rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 md:hidden"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <nav aria-label="Main" className="flex-1 overflow-y-auto p-3">
+          <ul className="space-y-1">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  end={item.to === '/'}
+                  onClick={onClose}
+                  className={({ isActive }) => linkClasses(isActive)}
+                >
+                  <item.icon className="mt-0.5 h-4.5 w-4.5 shrink-0 text-slate-500 md:mt-0" aria-hidden="true" />
+                  <span className="min-w-0">
+                    <span className="block">{item.label}</span>
+                    <span className="mt-0.5 block text-xs text-slate-500 md:hidden">{item.hint}</span>
+                  </span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="border-t border-slate-200 px-4 py-3">
+          <p className="text-xs leading-relaxed text-slate-500">
+            Road risk information is indicative. Follow instructions from local authorities.
+          </p>
+        </div>
+      </div>
+    </>
+  )
+}

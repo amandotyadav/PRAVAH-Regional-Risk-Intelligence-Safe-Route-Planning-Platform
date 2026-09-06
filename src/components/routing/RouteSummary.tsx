@@ -1,5 +1,52 @@
-import { CheckCircle2, Clock3, MapPin } from "lucide-react";
-import type { RouteResponse } from "../../types";
-import { riskStyles } from "../../utils/risk";
-function RouteSummary({ route }: { route: RouteResponse }) { const style = riskStyles[route.riskLevel]; return <section className="border border-slate-200 bg-white p-5 sm:p-6"><p className="text-sm font-medium text-emerald-700">Recommended Route</p><h2 className="mt-1 text-lg font-semibold text-slate-900">Route details</h2><div className="mt-5 grid gap-px border border-slate-200 bg-slate-200 sm:grid-cols-2"><div className="bg-white p-4"><MapPin size={18} className="text-slate-500" /><p className="mt-3 text-sm text-slate-500">Distance</p><p className="mt-1 text-xl font-semibold text-slate-900">{route.distance}</p></div><div className="bg-white p-4"><Clock3 size={18} className="text-slate-500" /><p className="mt-3 text-sm text-slate-500">Estimated time</p><p className="mt-1 text-xl font-semibold text-slate-900">{route.estimatedTime}</p></div></div><div className="mt-4 flex items-center justify-between border border-slate-200 bg-slate-50 p-4"><div><p className="text-sm text-slate-500">Risk score</p><p className="mt-1 text-sm font-medium text-slate-800">{route.riskScore}% exposure</p></div><span className={`border px-2 py-1 text-xs font-semibold ${style.badge}`}>{style.label} risk</span></div><p className="mt-5 flex items-center gap-2 text-sm text-slate-700"><CheckCircle2 size={17} className="text-emerald-600" />{route.avoidedSegments} dangerous road segments avoided</p></section>; }
-export default RouteSummary;
+import { CheckCircle2 } from 'lucide-react'
+import type { RouteRecommendation } from '../../types'
+import RiskBadge from '../common/RiskBadge'
+import Field from '../common/Field'
+import { asPercent, bandRouteScore } from '../../utils/risk'
+import { formatDateTime, formatDistanceKm, formatDuration } from '../../utils/format'
+
+interface RouteSummaryProps {
+  route: RouteRecommendation
+}
+
+/** Shows only the values the backend returned for the recommendation. */
+export default function RouteSummary({ route }: RouteSummaryProps) {
+  return (
+    <div className="rounded-md border border-slate-200 bg-white">
+      <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+            <CheckCircle2 className="h-4.5 w-4.5 shrink-0 text-green-700" aria-hidden="true" />
+            Recommended route
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-500">
+            Prepared {formatDateTime(route.generated_at)}
+          </p>
+        </div>
+        <RiskBadge state={bandRouteScore(route.average_risk_score)} />
+      </header>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-4 px-4 py-4 sm:grid-cols-4">
+        <Field label="Distance">{formatDistanceKm(route.total_distance_km)}</Field>
+        <Field label="Estimated time">{formatDuration(route.estimated_time_minutes)}</Field>
+        <Field label="Average road risk">{asPercent(route.average_risk_score)}</Field>
+        <Field label="Confidence">{asPercent(route.average_confidence)}</Field>
+      </dl>
+
+      {route.reason && (
+        <div className="border-t border-slate-200 px-4 py-3">
+          <h3 className="text-xs font-medium tracking-wide text-slate-500">About this route</h3>
+          <p className="mt-1 text-sm text-slate-700">{route.reason}</p>
+        </div>
+      )}
+
+      <div className="border-t border-slate-200 px-4 py-3">
+        <p className="text-xs text-slate-500">
+          Follows {route.path_segments.length} road segment
+          {route.path_segments.length === 1 ? '' : 's'}. Road conditions can change; check for new
+          reports before setting out.
+        </p>
+      </div>
+    </div>
+  )
+}

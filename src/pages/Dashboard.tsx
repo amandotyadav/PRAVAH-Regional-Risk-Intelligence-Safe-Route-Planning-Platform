@@ -1,93 +1,215 @@
-import {
-  AlertTriangle,
-  FileWarning,
-  Navigation,
-  ShieldAlert,
-} from "lucide-react";
-import { useState } from "react";
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { AlertTriangle, FilePlus2, Map, RefreshCw, Route } from 'lucide-react'
+import Card from '../components/common/Card'
+import SummaryTile from '../components/dashboard/SummaryTile'
+import RiskBreakdown from '../components/dashboard/RiskBreakdown'
+import { EmptyState, ErrorState, LoadingState } from '../components/common/StateViews'
+import { SeverityTag, VerificationTag } from '../components/incidents/IncidentCard'
+import { useApiResource } from '../hooks/useApiResource'
+import { getAlerts, getIncidents, getRoadRisks } from '../services/pravah'
+import { RISK_PRESENTATION } from '../utils/risk'
+import { INCIDENT_TYPE_LABELS, formatRelativeTime, roadDisplayName } from '../utils/format'
 
-import StatCard from "../components/dashboard/StatCard";
-import { dashboardStats } from "../data/mockData";
-import RiskMap from "../components/map/RiskMap";
-import { Link } from "react-router-dom";
+const QUICK_ACTIONS = [
+  { to: '/risk-map', label: 'Check road conditions', icon: Map },
+  { to: '/routes', label: 'Plan a safer journey', icon: Route },
+  { to: '/reports', label: 'Report a road problem', icon: FilePlus2 },
+]
 
-function Dashboard() {
-  const [layers, setLayers] = useState({ risk: true, roads: true, incidents: true });
-  const layerButtons = [{ key: "risk", label: "Risk" }, { key: "roads", label: "Roads" }, { key: "incidents", label: "Incidents" }] as const;
+export default function Dashboard() {
+  const risks = useApiResource(getRoadRisks, [], {
+    errorMessage: 'Road condition information could not be loaded.',
+  })
+  const incidents = useApiResource(() => getIncidents(), [], {
+    errorMessage: 'Incident reports could not be loaded.',
+  })
+  const alerts = useApiResource(() => getAlerts({ acknowledged: false }), [], {
+    errorMessage: 'Route warnings could not be loaded.',
+  })
+
+  const summary = useMemo(() => {
+    const assessments = risks.data ?? []
+    const blocked = assessments.filter(
+      (assessment) => assessment.state === 'CRITICAL' || assessment.state === 'HIGH',
+    ).length
+    const watch = assessments.filter((assessment) => assessment.state === 'MODERATE').length
+    return { total: assessments.length, blocked, watch }
+  }, [risks.data])
+
+  const recentIncidents = useMemo(
+    () =>
+      [...(incidents.data ?? [])]
+        .sort((a, b) => new Date(b.reported_at).getTime() - new Date(a.reported_at).getTime())
+        .slice(0, 5),
+    [incidents.data],
+  )
+
+  const reloadAll = () => {
+    risks.reload()
+    incidents.reload()
+    alerts.reload()
+  }
+
   return (
-    <div className="mx-auto max-w-[1440px] space-y-5">
-      {/* Welcome */}
-      <section className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Northeast Region · Current risk information
-          </p>
-
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 lg:text-3xl">
-            Current Risk Overview
-          </h1>
-
-          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-600">
-            View current risk areas, road conditions, and reported incidents across the region.
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-semibold text-slate-900">Current conditions</h2>
+          <p className="mt-0.5 text-sm text-slate-600">
+            An overview of road conditions and reported problems across the Northeast Region.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={reloadAll}
+          className="inline-flex min-h-9 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          <RefreshCw className="h-4 w-4" aria-hidden="true" />
+          Refresh
+        </button>
+      </div>
 
-        <Link to="/reports" className="border border-blue-700 bg-blue-700 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-blue-800">Report Incident</Link>
-      </section>
-
-      {/* Statistics */}
-      <section className="grid divide-y divide-slate-200 border-y border-slate-200 bg-white sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
-        <StatCard
-          title="High Risk Zones"
-          value={dashboardStats.highRiskZones}
-          description="Across the region"
-          icon={ShieldAlert}
-          variant="danger"
-        />
-
-        <StatCard
-          title="Active Incidents"
-          value={dashboardStats.activeIncidents}
-          description="4 require verification"
-          icon={AlertTriangle}
-          variant="warning"
-        />
-
-        <StatCard
-          title="Blocked Roads"
-          value={dashboardStats.blockedRoads}
-          description="Currently verified"
-          icon={FileWarning}
-          variant="danger"
-        />
-
-        <StatCard
-          title="Monitored Routes"
-          value={dashboardStats.routesMonitored}
-          description="Currently monitored"
-          icon={Navigation}
-          variant="success"
-        />
-      </section>
-
-      {/* Map section */}
-      <section className="overflow-hidden border border-slate-200 bg-white">
-        <div className="flex flex-col justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:px-5">
-          <div>
-            <p className="text-xs font-medium text-slate-500">
-              Current risk information
-            </p>
-
-            <h2 className="mt-0.5 text-lg font-semibold text-slate-900">Risk Map</h2>
+      {/* Unacknowledged route warnings raised by the backend's own monitor. */}
+      {(alerts.data?.length ?? 0) > 0 && (
+        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3.5" role="status">
+          <div className="flex gap-2.5">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-900">
+                {alerts.data?.length} route warning{alerts.data?.length === 1 ? '' : 's'} need attention
+              </p>
+              <ul className="mt-1.5 space-y-1">
+                {alerts.data?.slice(0, 3).map((alert) => (
+                  <li key={alert.id} className="text-sm text-amber-900">
+                    {alert.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-
-          <div className="flex border border-slate-200 bg-slate-50">{layerButtons.map(({ key, label }) => <button key={key} onClick={() => setLayers((current) => ({ ...current, [key]: !current[key] }))} aria-pressed={layers[key]} className={`border-r border-slate-200 px-3 py-2 text-xs font-medium last:border-r-0 transition ${layers[key] ? "bg-white text-blue-700" : "text-slate-500 hover:bg-white hover:text-slate-800"}`}>{label}</button>)}</div>
         </div>
+      )}
 
-        <RiskMap compact layers={layers} />
-      </section>
+      {risks.error && <ErrorState message={risks.error} onRetry={risks.reload} />}
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <SummaryTile
+          label="Roads monitored"
+          value={risks.isLoading ? '—' : summary.total.toLocaleString()}
+          hint="Segments with a current assessment"
+        />
+        <SummaryTile
+          label="Roads to avoid"
+          value={risks.isLoading ? '—' : summary.blocked.toLocaleString()}
+          hint="High or critical condition"
+          accent={summary.blocked > 0 ? RISK_PRESENTATION.CRITICAL.stroke : undefined}
+        />
+        <SummaryTile
+          label="Roads to watch"
+          value={risks.isLoading ? '—' : summary.watch.toLocaleString()}
+          hint="Moderate condition"
+          accent={summary.watch > 0 ? RISK_PRESENTATION.MODERATE.stroke : undefined}
+        />
+        <SummaryTile
+          label="Reported incidents"
+          value={incidents.isLoading ? '—' : (incidents.data?.length ?? 0).toLocaleString()}
+          hint="Reports currently on record"
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="Road conditions" description="How the monitored road network is rated right now.">
+          {risks.isLoading ? (
+            <LoadingState message="Loading road conditions…" />
+          ) : risks.error ? (
+            <ErrorState message={risks.error} onRetry={risks.reload} />
+          ) : (risks.data?.length ?? 0) === 0 ? (
+            <EmptyState
+              title="No road information available"
+              description="No road segments have been loaded into the service yet."
+            />
+          ) : (
+            <RiskBreakdown assessments={risks.data ?? []} />
+          )}
+        </Card>
+
+        <Card
+          title="Latest reports"
+          description="The most recent problems reported on the road network."
+          action={
+            <Link
+              to="/incidents"
+              className="text-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-900"
+            >
+              View all
+            </Link>
+          }
+          bodyless
+        >
+          {incidents.isLoading ? (
+            <div className="px-4">
+              <LoadingState message="Loading reports…" />
+            </div>
+          ) : incidents.error ? (
+            <div className="p-4">
+              <ErrorState message={incidents.error} onRetry={incidents.reload} />
+            </div>
+          ) : recentIncidents.length === 0 ? (
+            <EmptyState
+              title="No incidents reported"
+              description="Nothing has been reported on the road network yet."
+              icon={<AlertTriangle className="h-4.5 w-4.5" aria-hidden="true" />}
+              action={
+                <Link
+                  to="/reports"
+                  className="inline-flex min-h-10 items-center rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Report an incident
+                </Link>
+              }
+            />
+          ) : (
+            <ul>
+              {recentIncidents.map((incident) => (
+                <li key={incident.id} className="border-b border-slate-100 px-4 py-3 last:border-b-0">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-900">
+                      {INCIDENT_TYPE_LABELS[incident.type] ?? incident.type}
+                    </p>
+                    <SeverityTag severity={incident.severity} />
+                  </div>
+                  <p className="mt-0.5 text-sm text-slate-600">
+                    {roadDisplayName(null, incident.road_segment_id)}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <VerificationTag verified={incident.verified} />
+                    <span className="text-xs text-slate-500">
+                      {formatRelativeTime(incident.reported_at)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      <Card title="What would you like to do?">
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {QUICK_ACTIONS.map((action) => (
+            <li key={action.to}>
+              <Link
+                to={action.to}
+                className="flex min-h-12 items-center gap-2.5 rounded-md border border-slate-300 bg-white px-3.5 py-3 text-sm font-medium text-slate-800 hover:bg-slate-50"
+              >
+                <action.icon className="h-4.5 w-4.5 shrink-0 text-slate-500" aria-hidden="true" />
+                {action.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Card>
     </div>
-  );
+  )
 }
-
-export default Dashboard;

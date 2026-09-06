@@ -1,68 +1,92 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
 
-html {
-  background: #f5f6f4;
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  min-height: 100vh;
-  background: #f5f6f4;
-  color: #1e293b;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* Nothing in this application scrolls sideways. */
+  overflow-x: hidden;
 }
 
-button,
-a,
-select,
-input,
-textarea {
-  -webkit-tap-highlight-color: transparent;
-}
-button:focus-visible,
-a:focus-visible,
-select:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #2563eb;
+/* A single, consistent focus treatment for every interactive element. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #1d4ed8;
   outline-offset: 2px;
+  border-radius: 4px;
 }
-.incident-marker {
-  background: transparent;
-  border: 0;
+
+/* Skip link, visible only when focused by keyboard. */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  z-index: 100;
+  border-radius: 0.375rem;
+  background-color: #0f172a;
+  padding: 0.5rem 0.875rem;
+  color: #ffffff;
+  transition: top 0.15s ease-in-out;
 }
-.incident-marker span {
-  display: block;
-  width: 16px;
-  height: 16px;
-  border: 3px solid #fff;
-  border-radius: 9999px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
+
+.skip-link:focus {
+  top: 0.75rem;
 }
-.route-endpoint-marker {
-  background: transparent;
-  border: 0;
-}
-.route-endpoint-marker span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 3px solid #fff;
-  border-radius: 9999px;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-}
+
+/* Leaflet defaults that clash with the surrounding interface. */
 .leaflet-container {
-  font-family: inherit;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  background-color: #e2e8f0;
+  /* Leaflet gives its panes and controls z-indexes in the hundreds. Isolating
+     the map keeps those inside it, so panels and drawers layer above the map
+     instead of being painted over by it. */
+  isolation: isolate;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 0.12);
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px;
+  line-height: 1.45;
+}
+
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  color: #0f172a;
+}
+
+/* Leaflet's own zoom buttons are 30px, which is small for a fingertip. */
+.leaflet-touch .leaflet-bar a,
+.leaflet-bar a {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+}
+
+/* Tabular figures keep changing numbers from shifting the layout. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

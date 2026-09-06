@@ -1,10 +1,74 @@
-import { useState } from "react";
-import { Check, ShieldCheck } from "lucide-react";
+import { LogOut } from 'lucide-react'
+import Card from '../components/common/Card'
+import Field from '../components/common/Field'
+import { ServiceStatusIndicator, useServiceStatus } from '../components/layout/ServiceStatus'
+import { useAuth } from '../hooks/useAuth'
+import { BASE_URL } from '../services/api'
+import { clearRoadNetwork } from '../services/roadNetwork'
 
-function SettingsPage() {
-  const [settings, setSettings] = useState({ alerts: true, sounds: false, updates: true });
-  const [saved, setSaved] = useState(false);
-  const options = [{ key: "alerts", title: "Critical risk alerts", description: "Receive alerts for critical incidents." }, { key: "sounds", title: "Alert sound", description: "Play a sound when a critical report arrives." }, { key: "updates", title: "Service updates", description: "Show route and service updates." }] as const;
-  return <div className="mx-auto max-w-3xl space-y-5"><section className="border-b border-slate-200 pb-5"><p className="text-sm font-medium text-slate-500">Preferences</p><h1 className="mt-1 text-2xl font-semibold text-slate-900">Settings</h1><p className="mt-1.5 text-sm leading-6 text-slate-600">Manage notifications for this session.</p></section><section className="border border-slate-200 bg-white"><div className="border-b border-slate-200 p-5"><div className="flex items-center gap-3"><div className="p-2 text-blue-700"><ShieldCheck size={20} /></div><div><h2 className="font-semibold text-slate-900">Notifications</h2><p className="text-sm text-slate-500">Choose which alerts appear in the app.</p></div></div></div><div className="divide-y divide-slate-200">{options.map(({ key, title, description }) => <label key={key} className="flex cursor-pointer items-center justify-between gap-5 p-5"><div><p className="text-sm font-medium text-slate-800">{title}</p><p className="mt-1 text-sm text-slate-500">{description}</p></div><input aria-label={title} type="checkbox" checked={settings[key]} onChange={() => setSettings((current) => ({ ...current, [key]: !current[key] }))} className="h-5 w-5 accent-blue-700" /></label>)}</div><div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><p className="text-sm text-slate-500">Preferences are stored until this page is refreshed.</p><button onClick={() => setSaved(true)} className="flex w-fit items-center gap-2 border border-blue-700 bg-blue-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-800">{saved && <Check size={15} />} {saved ? "Saved" : "Save changes"}</button></div></section><section className="border border-slate-200 bg-white p-5"><h2 className="font-semibold text-slate-900">Service status</h2><p className="mt-2 flex items-center gap-2 text-sm text-emerald-700"><span className="h-2 w-2 rounded-full bg-emerald-600" />All services available.</p></section></div>;
+export default function SettingsPage() {
+  const { username, role, signOut } = useAuth()
+  const status = useServiceStatus()
+
+  const handleSignOut = () => {
+    clearRoadNetwork()
+    signOut()
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold text-slate-900">Settings</h2>
+        <p className="mt-0.5 text-sm text-slate-600">Your account and the service this app is using.</p>
+      </div>
+
+      <Card title="Your account">
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-4">
+          <Field label="Signed in as">{username ?? 'Unknown'}</Field>
+          {/* Role comes from the backend, in the token it issued at sign-in. */}
+          <Field label="Account type">{role ?? 'Not specified'}</Field>
+        </dl>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          <LogOut className="h-4 w-4" aria-hidden="true" />
+          Sign out
+        </button>
+      </Card>
+
+      <Card title="Service">
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <Field label="Status">
+            <ServiceStatusIndicator status={status} />
+          </Field>
+          <Field label="Connected to" hint="Set with VITE_API_BASE_URL">
+            <span className="break-all">{BASE_URL}</span>
+          </Field>
+        </dl>
+      </Card>
+
+      <Card title="Map data">
+        <p className="text-sm text-slate-700">
+          Background maps come from OpenStreetMap. Road outlines, conditions and incident reports come
+          from the PRAVAH service.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            clearRoadNetwork()
+            window.location.reload()
+          }}
+          className="mt-4 inline-flex min-h-10 items-center rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          Reload road information
+        </button>
+        <p className="mt-2 text-xs text-slate-500">
+          Road outlines are downloaded once per session. Reload them if roads look out of date.
+        </p>
+      </Card>
+    </div>
+  )
 }
-export default SettingsPage;

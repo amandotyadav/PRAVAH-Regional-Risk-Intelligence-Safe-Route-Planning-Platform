@@ -1,28 +1,84 @@
-import { divIcon, latLngBounds } from "leaflet";
-import { Marker, Polyline, Popup, useMap } from "react-leaflet";
-import { useEffect } from "react";
-import type { RouteResponse } from "../../types";
+import { useEffect } from 'react'
+import { Marker, Polyline, Popup, useMap } from 'react-leaflet'
+import L from 'leaflet'
+import type { LatLngTuple } from 'leaflet'
+import { boundsOfPaths } from '../../utils/geo'
 
-const endpointIcon = (label: string, color: string) => divIcon({
-  className: "route-endpoint-marker",
-  html: `<span style="background:${color}">${label}</span>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 14],
-});
+interface RouteLayerProps {
+  /** Road-following paths built from the recommended route's segments. */
+  paths: LatLngTuple[][]
+  origin: LatLngTuple | null
+  destination: LatLngTuple | null
+  /** Re-fits the view whenever this changes, i.e. for each new recommendation. */
+  fitKey: number | string | null
+}
 
-function FitRouteBounds({ geometry }: Pick<RouteResponse, "geometry">) {
-  const map = useMap();
+function endpointIcon(color: string, label: string): L.DivIcon {
+  return L.divIcon({
+    className: '',
+    html: `<span style="display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:9999px;background:${color};color:#fff;border:2px solid #fff;box-shadow:0 1px 4px rgba(15,23,42,.45);font:600 11px/1 system-ui,sans-serif">${label}</span>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -12],
+  })
+}
+
+const ORIGIN_ICON = endpointIcon('#1d4ed8', 'A')
+const DESTINATION_ICON = endpointIcon('#0f172a', 'B')
+
+/**
+ * Draws the recommended route and brings it into view.
+ *
+ * Every previous route is replaced because the layer renders only the paths it
+ * is given, and the view is refitted for each new recommendation so the result
+ * never has to be hunted for on the map.
+ */
+export default function RouteLayer({ paths, origin, destination, fitKey }: RouteLayerProps) {
+  const map = useMap()
+
   useEffect(() => {
-    if (geometry.length > 1) map.fitBounds(latLngBounds(geometry), { padding: [40, 40] });
-  }, [geometry, map]);
-  return null;
-}
+    if (fitKey === null) return
 
-function RouteLayer({ route }: { route: RouteResponse }) {
-  const start = route.geometry[0];
-  const destination = route.geometry.at(-1);
-  if (!start || !destination) return null;
-  return <><FitRouteBounds geometry={route.geometry} /><Polyline positions={route.geometry} pathOptions={{ color: "#1d4ed8", weight: 5, opacity: 0.9 }} /><Marker position={start} icon={endpointIcon("S", "#15803d")}><Popup><strong>Start</strong><br />{route.origin}</Popup></Marker><Marker position={destination} icon={endpointIcon("D", "#b91c1c")}><Popup><strong>Destination</strong><br />{route.destination}</Popup></Marker></>;
-}
+    const points = [...paths]
+    if (origin) points.push([origin])
+    if (destination) points.push([destination])
 
-export default RouteLayer;
+    const bounds = boundsOfPaths(points)
+    if (!bounds) return
+
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 })
+  }, [fitKey, map, paths, origin, destination])
+
+  return (
+    <>
+      {paths.map((path, index) => (
+        // A casing line underneath keeps the route legible over busy map tiles.
+        <Polyline
+          key={`casing-${index}`}
+          positions={path}
+          pathOptions={{ color: '#ffffff', weight: 9, opacity: 0.95 }}
+          interactive={false}
+        />
+      ))}
+      {paths.map((path, index) => (
+        <Polyline
+          key={`route-${index}`}
+          positions={path}
+          pathOptions={{ color: '#1d4ed8', weight: 5, opacity: 1 }}
+          interactive={false}
+        />
+      ))}
+
+      {origin && (
+        <Marker position={origin} icon={ORIGIN_ICON} title="Starting point">
+          <Popup>Starting point</Popup>
+        </Marker>
+      )}
+      {destination && (
+        <Marker position={destination} icon={DESTINATION_ICON} title="Destination">
+          <Popup>Destination</Popup>
+        </Marker>
+      )}
+    </>
+  )
+}
