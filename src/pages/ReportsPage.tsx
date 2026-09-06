@@ -11,6 +11,8 @@ import ReportForm, { type ReportFormValues } from '../components/reports/ReportF
 import Card from '../components/common/Card'
 import { ErrorState, LoadingState } from '../components/common/StateViews'
 import { useRoadNetwork } from '../hooks/useRoadNetwork'
+import { usePlaceSearch } from '../hooks/usePlaceSearch'
+import type { PlaceSuggestion } from '../services/geocoding'
 import { createIncident, deleteIncident } from '../services/pravah'
 import { toUserMessage } from '../services/errors'
 import { midpointOf, nearestFeature } from '../utils/geo'
@@ -43,8 +45,17 @@ export default function ReportsPage() {
   const [isLocating, setIsLocating] = useState(false)
   const [locationMessage, setLocationMessage] = useState<string | null>(null)
 
+  const [locationQuery, setLocationQuery] = useState('')
+  const locationSearch = usePlaceSearch(locationQuery, network.data)
+
+  /**
+   * Resolve any point - a map tap, a search suggestion, or geolocation - to
+   * the nearest road, since that's what an incident report attaches to. When
+   * `label` is given (a search pick or "current location") the field shows
+   * that text; a bare map tap just shows the road it resolved to instead.
+   */
   const selectRoadNear = useCallback(
-    (lat: number, lon: number) => {
+    (lat: number, lon: number, label?: string) => {
       if (!network.data) return
       const feature = nearestFeature(network.data.features, lat, lon)
       if (!feature) {
@@ -52,9 +63,15 @@ export default function ReportsPage() {
         return
       }
       setSelectedRoad(feature)
+      setLocationQuery(label ?? roadDisplayName(feature.properties.name, feature.properties.id))
       setLocationMessage(null)
     },
     [network.data],
+  )
+
+  const handleSelectLocationSuggestion = useCallback(
+    (suggestion: PlaceSuggestion) => selectRoadNear(suggestion.lat, suggestion.lon, suggestion.label),
+    [selectRoadNear],
   )
 
   const handleUseCurrentLocation = useCallback(() => {
@@ -69,7 +86,7 @@ export default function ReportsPage() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setIsLocating(false)
-        selectRoadNear(position.coords.latitude, position.coords.longitude)
+        selectRoadNear(position.coords.latitude, position.coords.longitude, 'Your current location')
       },
       () => {
         setIsLocating(false)
@@ -110,6 +127,7 @@ export default function ReportsPage() {
     setSubmitted(null)
     setValues(INITIAL_VALUES)
     setSelectedRoad(null)
+    setLocationQuery('')
     setSubmitError(null)
     setWithdrawError(null)
   }, [])
@@ -256,6 +274,11 @@ export default function ReportsPage() {
                 values={values}
                 onChange={setValues}
                 selectedRoad={selectedRoad}
+                locationQuery={locationQuery}
+                onLocationQueryChange={setLocationQuery}
+                locationSuggestions={locationSearch.suggestions}
+                isSearchingLocation={locationSearch.isLoading}
+                onSelectLocationSuggestion={handleSelectLocationSuggestion}
                 onUseCurrentLocation={handleUseCurrentLocation}
                 isLocating={isLocating}
                 locationMessage={locationMessage}

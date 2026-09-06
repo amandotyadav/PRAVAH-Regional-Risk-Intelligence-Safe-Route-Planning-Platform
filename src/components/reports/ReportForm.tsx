@@ -1,6 +1,8 @@
 import { LocateFixed, Send } from 'lucide-react'
 import type { FormEvent } from 'react'
 import type { IncidentSeverity, IncidentType, RoadFeature } from '../../types'
+import type { PlaceSuggestion } from '../../services/geocoding'
+import LocationSearchField from '../common/LocationSearchField'
 import { INCIDENT_SEVERITY_LABELS, INCIDENT_TYPE_LABELS, roadDisplayName, roadTypeLabel } from '../../utils/format'
 
 /** Values are the backend's enums; only the wording shown here is ours. */
@@ -39,6 +41,11 @@ interface ReportFormProps {
   values: ReportFormValues
   onChange: (values: ReportFormValues) => void
   selectedRoad: RoadFeature | null
+  locationQuery: string
+  onLocationQueryChange: (text: string) => void
+  locationSuggestions: PlaceSuggestion[]
+  isSearchingLocation: boolean
+  onSelectLocationSuggestion: (suggestion: PlaceSuggestion) => void
   onUseCurrentLocation: () => void
   isLocating: boolean
   locationMessage: string | null
@@ -50,6 +57,11 @@ export default function ReportForm({
   values,
   onChange,
   selectedRoad,
+  locationQuery,
+  onLocationQueryChange,
+  locationSuggestions,
+  isSearchingLocation,
+  onSelectLocationSuggestion,
   onUseCurrentLocation,
   isLocating,
   locationMessage,
@@ -69,8 +81,23 @@ export default function ReportForm({
       <div>
         <h3 className="text-sm font-semibold text-slate-900">Where is the problem?</h3>
         <p className="mt-0.5 text-xs text-slate-500">
-          Tap the road on the map, or use your current location.
+          Type a place or road name, tap the road on the map, or use your current location.
         </p>
+
+        <div className="mt-2">
+          <LocationSearchField
+            label="Affected road"
+            placeholder="Search for a place or road…"
+            value={locationQuery}
+            onChange={onLocationQueryChange}
+            suggestions={locationSuggestions}
+            isLoading={isSearchingLocation}
+            isActive={false}
+            onFocus={() => {}}
+            onSelect={onSelectLocationSuggestion}
+            coordinateHint={null}
+          />
+        </div>
 
         <div
           className={`mt-2 rounded-md border px-3 py-2.5 ${

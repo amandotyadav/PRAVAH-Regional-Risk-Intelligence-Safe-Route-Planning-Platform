@@ -1,7 +1,7 @@
 import { Crosshair, LocateFixed, Search } from 'lucide-react'
 import type { CargoType, ShipmentPriority } from '../../types'
 import type { PlaceSuggestion } from '../../services/geocoding'
-import LocationSearchField from './LocationSearchField'
+import LocationSearchField from '../common/LocationSearchField'
 import { formatCoordinate } from '../../utils/format'
 import type { RoutePoint } from './types'
 
